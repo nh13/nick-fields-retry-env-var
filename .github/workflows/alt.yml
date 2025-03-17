@@ -1,0 +1,35 @@
+name: tests
+
+on:
+  push:
+    branches:
+      - "**"
+    tags:
+      - "!**"
+  workflow_call:
+
+jobs:
+  testing:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: nick-fields/retry@v3
+      with:
+        shell: bash
+        max_attempts: 2
+        retry_on: error
+        polling_interval_seconds: 5
+        timeout_minutes: 90
+        command: |
+          set -x
+          if [ -f .env ]; then
+            cat .env
+            source .env;
+          fi
+          echo "MY_ENV_VAR='${MY_ENV_VAR}'"
+          if [ "${MY_ENV_VAR}" == "" ]; then
+            exit 1
+          else
+            exit 0
+          fi
+        on_retry_command: |
+          echo "MY_ENV_VAR=true" >> .env
